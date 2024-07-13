@@ -7,13 +7,22 @@ export default function HomePage() {
   const [account, setAccount] = useState(undefined);
   const [atm, setATM] = useState(undefined);
   const [balance, setBalance] = useState(undefined);
+  const [depositAmount, setDepositAmount] = useState("");
+  const [withdrawAmount, setWithdrawAmount] = useState("");
+  const [newOwner, setNewOwner] = useState("");
 
   const contractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
   const atmABI = atm_abi.abi;
 
+  const rpcUrl = "YOUR_RPC_URL_HERE"; // Update this with your actual RPC URL
+  const chainId = "YOUR_CHAIN_ID_HERE"; // Update this with your actual chain ID
+
   useEffect(() => {
     if (window.ethereum) {
       setEthWallet(window.ethereum);
+    } else {
+      const provider = new ethers.providers.JsonRpcProvider(rpcUrl, chainId);
+      setEthWallet(provider);
     }
     if (ethWallet) {
       ethWallet.request({ method: "eth_accounts" }).then(handleAccount);
@@ -39,7 +48,9 @@ export default function HomePage() {
   };
 
   const getATMContract = () => {
-    const provider = new ethers.providers.Web3Provider(ethWallet);
+    const provider = ethWallet instanceof ethers.providers.JsonRpcProvider 
+      ? ethWallet 
+      : new ethers.providers.Web3Provider(ethWallet);
     const signer = provider.getSigner();
     const atmContract = new ethers.Contract(contractAddress, atmABI, signer);
     setATM(atmContract);
@@ -55,49 +66,64 @@ export default function HomePage() {
 
   const deposit = async () => {
     if (atm) {
-      const tx = await atm.deposit(ethers.utils.parseEther("1")); // Send 1 ether
+      const tx = await atm.deposit({ value: ethers.utils.parseEther(depositAmount) });
       await tx.wait();
-      getBalance();
+      getBalance(); // Refresh balance
     }
   };
 
   const withdraw = async () => {
     if (atm) {
-      const tx = await atm.withdraw(ethers.utils.parseEther("1")); // Withdraw 1 ether
+      const tx = await atm.withdraw(ethers.utils.parseEther(withdrawAmount));
       await tx.wait();
-      getBalance();
+      getBalance(); // Refresh balance
     }
   };
 
-  const initUser = () => {
-    if (!ethWallet) {
-      return <p>Please install MetaMask in order to use this ATM.</p>;
+  const transferAccount = async () => {
+    if (atm) {
+      const tx = await atm.transferAccount(newOwner);
+      await tx.wait();
     }
-    if (!account) {
-      return <button onClick={connectAccount}>Please connect your MetaMask wallet</button>;
-    }
-    if (balance === undefined) {
-      getBalance();
-    }
-    return (
-      <div>
-        <p>Your Account: {account}</p>
-        <p>Your Balance: {balance} ETH</p>
-        <button onClick={deposit}>Deposit 1 ETH</button>
-        <button onClick={withdraw}>Withdraw 1 ETH</button>
-      </div>
-    );
   };
 
   return (
-    <main className="container">
-      <header><h1>Welcome to the MetaCrafters ATM!</h1></header>
-      {initUser()}
-      <style jsx>{`
-        .container {
-          text-align: center;
-        }
-      `}</style>
-    </main>
+    <div>
+      <h1>ATM Contract</h1>
+      <button onClick={connectAccount}>
+        {account ? `Connected: ${account}` : "Connect MetaMask"}
+      </button>
+      <div>
+        <h2>Balance: {balance}</h2>
+        <button onClick={getBalance}>Get Balance</button>
+      </div>
+      <div>
+        <h2>Deposit</h2>
+        <input
+          type="text"
+          value={depositAmount}
+          onChange={(e) => setDepositAmount(e.target.value)}
+        />
+        <button onClick={deposit}>Deposit</button>
+      </div>
+      <div>
+        <h2>Withdraw</h2>
+        <input
+          type="text"
+          value={withdrawAmount}
+          onChange={(e) => setWithdrawAmount(e.target.value)}
+        />
+        <button onClick={withdraw}>Withdraw</button>
+      </div>
+      <div>
+        <h2>Transfer Ownership</h2>
+        <input
+          type="text"
+          value={newOwner}
+          onChange={(e) => setNewOwner(e.target.value)}
+        />
+        <button onClick={transferAccount}>Transfer Ownership</button>
+      </div>
+    </div>
   );
 }
