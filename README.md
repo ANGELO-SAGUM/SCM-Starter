@@ -1,12 +1,9 @@
-# Ethereum Smart Contract Assessment
+# ATM Smart Contract
+This Solidity program implements an ATM system where the owner can deposit, withdraw funds, and transfer ownership. This project demonstrates how to create a smart contract with basic financial transactions and owner-only restrictions using Solidity and how to interact with it using a frontend application.
 
-This project, features a basic Ethereum smart contract written in Solidity for an ATM system.
+## Description
 
-## Features
-
-- **Depositing Funds: The owner can deposit Ether into the contract.
-- **Withdrawing Funds: The owner can withdraw Ether from the contract.
-- **Check Balance: Users can check the current balance of the contract.
+This project consists of a smart contract written in Solidity, which allows the owner to deposit and withdraw funds and transfer ownership. The frontend application, developed with React and ethers.js, interacts with this smart contract, allowing the owner to perform these operations via a web interface.
 
 
 ### Installing Dependencies
