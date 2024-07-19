@@ -7,6 +7,7 @@ export default function HomePage() {
   const [account, setAccount] = useState(undefined);
   const [atm, setATM] = useState(undefined);
   const [balance, setBalance] = useState(undefined);
+  const [owner, setOwner] = useState(undefined);
   const [depositAmount, setDepositAmount] = useState("");
   const [withdrawAmount, setWithdrawAmount] = useState("");
   const [newOwner, setNewOwner] = useState("");
@@ -14,8 +15,8 @@ export default function HomePage() {
   const contractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
   const atmABI = atm_abi.abi;
 
-  const rpcUrl = "YOUR_RPC_URL_HERE"; // Update this with your actual RPC URL
-  const chainId = "YOUR_CHAIN_ID_HERE"; // Update this with your actual chain ID
+  const rpcUrl = "YOUR_RPC_URL_HERE";
+  const chainId = "YOUR_CHAIN_ID_HERE";
 
   useEffect(() => {
     if (window.ethereum) {
@@ -59,16 +60,23 @@ export default function HomePage() {
   const getBalance = async () => {
     if (atm) {
       const balanceBN = await atm.getBalance();
-      const balance = ethers.utils.formatEther(balanceBN); // Format balance to string
+      const balance = ethers.utils.formatEther(balanceBN);
       setBalance(balance);
+    }
+  };
+
+  const getOwner = async () => {
+    if (atm) {
+      const currentOwner = await atm.getOwner();
+      setOwner(currentOwner);
     }
   };
 
   const deposit = async () => {
     if (atm) {
-      const tx = await atm.deposit({ value: ethers.utils.parseEther(depositAmount) });
+      const tx = await atm.deposit({value: ethers.utils.parseEther(depositAmount) });
       await tx.wait();
-      getBalance(); // Refresh balance
+      getBalance();
     }
   };
 
@@ -76,7 +84,7 @@ export default function HomePage() {
     if (atm) {
       const tx = await atm.withdraw(ethers.utils.parseEther(withdrawAmount));
       await tx.wait();
-      getBalance(); // Refresh balance
+      getBalance();
     }
   };
 
@@ -84,6 +92,7 @@ export default function HomePage() {
     if (atm) {
       const tx = await atm.transferAccount(newOwner);
       await tx.wait();
+      getOwner();
     }
   };
 
@@ -93,6 +102,10 @@ export default function HomePage() {
       <button onClick={connectAccount}>
         {account ? `Connected: ${account}` : "Connect MetaMask"}
       </button>
+      <div>
+        <h2>Current Owner: {owner}</h2>
+        <button onClick={getOwner}>Get Current Owner</button>
+      </div>
       <div>
         <h2>Balance: {balance}</h2>
         <button onClick={getBalance}>Get Balance</button>
