@@ -58,4 +58,8 @@ contract Assessment {
         emit Transfer(msg.sender, _newOwner);
         owner = payable(_newOwner);
     }
+
+    function getOwner() public view returns (address) {
+        return owner;
+    }
 }
